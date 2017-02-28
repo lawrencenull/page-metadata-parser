@@ -1,7 +1,7 @@
 // Tests for parse.js
 const {assert} = require('chai');
 const {buildRuleset, metadataRules} = require('../parser');
-const {stringToDom} = require('./test-utils');
+const {stringToDom, makeUrlAbsolute, parseUrl} = require('./test-utils');
 
 function buildHTML(tag) {
   return `
@@ -19,7 +19,9 @@ function ruleTest(testName, testRule, expected, testTag) {
     const doc = stringToDom(html);
     const rule = buildRuleset(testName, testRule.rules, testRule.processors);
     const found = rule(doc, {
-      url: 'http://www.example.com/'
+      url: 'http://www.example.com/',
+      makeUrlAbsolute,
+      parseUrl,
     });
     assert.deepEqual(found, expected, `Unable to find ${testName} in ${html}`);
   });
@@ -85,7 +87,9 @@ describe('Icon Rule Tests', function() {
     const doc = stringToDom(html);
     const rule = buildRuleset('Largest Icon', metadataRules.icon_url.rules, metadataRules.icon_url.processors, metadataRules.icon_url.scorers);
     const found = rule(doc, {
-      url: 'http://www.example.com/'
+      url: 'http://www.example.com/',
+      makeUrlAbsolute,
+      parseUrl,
     });
     assert.deepEqual(found, 'http://www.example.com/large.png', 'icon_rules did not prefer the largest icon');
   });
@@ -152,4 +156,3 @@ describe('Provider Rule Tests', function() {
 
   ruleTests.map(([testName, testTag]) => ruleTest(testName, metadataRules.provider, provider, testTag));
 });
-

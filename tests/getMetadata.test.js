@@ -1,27 +1,27 @@
 // Tests for parse.js
 const {assert} = require('chai');
 const {getProvider, getMetadata, metadataRules} = require('../parser');
-const {stringToDom} = require('./test-utils');
+const {stringToDom, makeUrlAbsolute, parseUrl} = require('./test-utils');
 
 describe('Get Provider Tests', function() {
   it('gets a provider with no subdomain', function() {
-    assert.equal(getProvider('https://example.com/this/?id=that'), 'example');
+    assert.equal(getProvider(parseUrl('https://example.com/this/?id=that')), 'example');
   });
 
   it('removes www as a subdomain', function() {
-    assert.equal(getProvider('https://www.example.com/this/?id=that'), 'example');
+    assert.equal(getProvider(parseUrl('https://www.example.com/this/?id=that')), 'example');
   });
 
   it('removes www1 as a subdomain', function() {
-    assert.equal(getProvider('https://www1.example.com/this/?id=that'), 'example');
+    assert.equal(getProvider(parseUrl('https://www1.example.com/this/?id=that')), 'example');
   });
 
   it('preserves non-www subdomains', function() {
-    assert.equal(getProvider('https://things.example.com/this/?id=that'), 'things example');
+    assert.equal(getProvider(parseUrl('https://things.example.com/this/?id=that')), 'things example');
   });
 
   it('removes secondary TLDs', function() {
-    assert.equal(getProvider('https://things.example.co.uk/this/?id=that'), 'things example');
+    assert.equal(getProvider(parseUrl('https://things.example.co.uk/this/?id=that')), 'things example');
   });
 });
 
@@ -53,7 +53,7 @@ describe('Get Metadata Tests', function() {
 
   it('parses metadata', () => {
     const doc = stringToDom(sampleHtml);
-    const metadata = getMetadata(doc);
+    const metadata = getMetadata(doc, sampleUrl, metadataRules, makeUrlAbsolute, parseUrl);
 
     assert.equal(metadata.description, sampleDescription, `Unable to find ${sampleDescription} in ${sampleHtml}`);
     assert.equal(metadata.icon_url, sampleIcon, `Unable to find ${sampleIcon} in ${sampleHtml}`);
@@ -79,7 +79,7 @@ describe('Get Metadata Tests', function() {
     `;
 
     const doc = stringToDom(relativeHtml);
-    const metadata = getMetadata(doc, sampleUrl);
+    const metadata = getMetadata(doc, sampleUrl, metadataRules, makeUrlAbsolute, parseUrl);
 
     assert.equal(metadata.icon_url, sampleIcon, `Unable to find ${sampleIcon} in ${relativeHtml}`);
     assert.equal(metadata.image_url, sampleImageHTTP, `Unable to find ${sampleImageHTTP} in ${relativeHtml}`);
@@ -95,7 +95,7 @@ describe('Get Metadata Tests', function() {
 
     const sampleProvider = 'example';
     const doc = stringToDom(emptyHtml);
-    const metadata = getMetadata(doc, sampleUrl);
+    const metadata = getMetadata(doc, sampleUrl, metadataRules, makeUrlAbsolute, parseUrl);
 
     assert.equal(metadata.provider, sampleProvider, `Unable to find ${sampleProvider} in ${sampleUrl}`);
   });
@@ -111,7 +111,7 @@ describe('Get Metadata Tests', function() {
     `;
 
     const doc = stringToDom(providerHtml);
-    const metadata = getMetadata(doc, sampleUrl);
+    const metadata = getMetadata(doc, sampleUrl, metadataRules, makeUrlAbsolute, parseUrl);
 
     assert.equal(metadata.provider, sampleProvider, `Unable to find ${sampleProvider} in ${providerHtml}`);
   });
@@ -125,7 +125,7 @@ describe('Get Metadata Tests', function() {
     `;
 
     const doc = stringToDom(noIconHtml);
-    const metadata = getMetadata(doc, sampleUrl);
+    const metadata = getMetadata(doc, sampleUrl, metadataRules, makeUrlAbsolute, parseUrl);
 
     assert.equal(metadata.icon_url, sampleIcon, `Unable to find ${sampleIcon} in ${metadata.icon_url}`);
   });
@@ -138,7 +138,7 @@ describe('Get Metadata Tests', function() {
     `;
 
     const doc = stringToDom(html);
-    const metadata = getMetadata(doc, sampleUrl);
+    const metadata = getMetadata(doc, sampleUrl, metadataRules, makeUrlAbsolute, parseUrl);
 
     assert.equal(metadata.url, sampleUrl, `Unable to find ${sampleUrl} in ${JSON.stringify(metadata)}`);
   });
@@ -150,7 +150,7 @@ describe('Get Metadata Tests', function() {
       description: metadataRules.description
     };
 
-    const metadata = getMetadata(doc, sampleUrl, rules);
+    const metadata = getMetadata(doc, sampleUrl, rules, makeUrlAbsolute, parseUrl);
 
     assert.equal(metadata.url, sampleUrl, 'Error finding URL');
     assert.equal(metadata.title, sampleTitle, 'Error finding title');
@@ -172,7 +172,7 @@ describe('Get Metadata Tests', function() {
       }
     };
 
-    const metadata = getMetadata(doc, sampleUrl, rules);
+    const metadata = getMetadata(doc, sampleUrl, rules, makeUrlAbsolute, parseUrl);
     assert.isObject(metadata.openGraph);
     assert.isObject(metadata.media);
 

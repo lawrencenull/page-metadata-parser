@@ -7,7 +7,6 @@
     "url": "https://github.com/mozilla/page-metadata-parser/issues"
   },
   "dependencies": {
-    "fathom-web": "^1.1.2"
   },
   "devDependencies": {
     "babel": "^6.5.2",
